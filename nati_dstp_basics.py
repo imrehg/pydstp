@@ -9,6 +9,7 @@ import array
 import socket
 import select
 import types
+import sys
 
 try:
 	import Numeric
@@ -32,7 +33,7 @@ __all__=["pack_object", "pack_object_completely", "parse_composite_object", "par
 		"UseNumericArray", "get_payload_from_string"]
 
 #global flag for big-endian architectures
-bigendian=struct.unpack('L','\1\0\0\0')[0] != 1
+bigendian = (sys.byteorder == 'big')
 
 def packbytes(bytes):
 	"efficiently convert a list of bytes to a string"
