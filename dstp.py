@@ -11,13 +11,13 @@ import struct
 import array
 import select
 
-from nati_dstp_basics import *
+import nati_dstp_basics as ni
 
 
-class handler(NATI_DSTP_stream_handler):
+class handler(ni.NATI_DSTP_StreamHandler):
 	
 	def __init__(self, request, client_address, server):
-		NATI_DSTP_stream_handler.__init__(self, server, request)
+		ni.NATI_DSTP_StreamHandler.__init__(self, server, request)
 		self.client_address=client_address
 		self.handle_connection()
 				
@@ -42,14 +42,14 @@ class handler(NATI_DSTP_stream_handler):
 			pass #somebody already clean us out
 		r.shutdown(2) #zap our socket on exit
 				
-class DSTPServer(SocketServer.ThreadingTCPServer, NATI_DSTP_DataServer):
+class DSTPServer(SocketServer.ThreadingTCPServer, ni.NATI_DSTP_DataServer):
 	allow_reuse_address=1
 	def __init__(self):
 		SocketServer.TCPServer.__init__(self, ('',3015), handler)
 		self.data={}
-		self.debug=0
+		self.debug=True
 		self.request_closers={}
-		NATI_DSTP_DataServer.__init__(self)
+		ni.NATI_DSTP_DataServer.__init__(self)
 		
 	def log_exception(self, explanation=''):
 		print explanation
@@ -111,20 +111,30 @@ class DSTPServer(SocketServer.ThreadingTCPServer, NATI_DSTP_DataServer):
 		time.sleep(0.1)
 		
 if __name__=='__main__':		
+	import sys
+	HOST, PORT = "", 3015
 	s=DSTPServer()
 	s.debug=1
 	thread_server=0
 	threading._VERBOSE=0
-		
+
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.connect((HOST, PORT))
+
 	def tryit():
 		print "started tweaking server"
-		for i in range(30):
-			s['MyTest']=i
-			s['TestArray']=array.array('d',[i,i/2.0,i/3.0,i/5.0])
-			time.sleep(1)
-		
-		s.close()
-		time.sleep(1)
+		try:
+			sock.sendall("hello" + "\n")
+			# for i in range(3):
+			# 	sock.sendall("hello" + "\n")
+			# 	# s['MyTest']=i
+			# 	# s['TestArray']=array.array('d',[i,i/2.0,i/3.0,i/5.0])
+			# 	time.sleep(1)
+		except:
+			raise
+		finally:
+			s.close()
+		time.sleep(0.1)
 	
 	if thread_server:	
 		sth=threading.Thread(target=s.serve, name='server')
@@ -134,6 +144,7 @@ if __name__=='__main__':
 	th.start()
 	
 	def monitor_test(string):
+		print "Monitor test"
 		print parse_composite_object(string)[0][-2:]
 		if 0: #try error bailout on server
 			raise "oops"

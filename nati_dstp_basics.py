@@ -303,6 +303,7 @@ class NATI_DSTP_StreamHandler:
 			
 	def handle_one_request(self, sock):
 		r=self.request
+		print r.recv(4096)
 		try:
 			line = recvfrag_with_timeout(r, timeout_seconds=self.read_timeout) #if we got here, select already says we have data, so be impatient				
 		except TimeoutError:
